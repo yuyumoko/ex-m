@@ -1,0 +1,15 @@
+ujson
+tqdm
+colorlog
+psutil
+beautifulsoup4
+lxml
+tenacity
+SqliteDict
+Flask
+Flask-Cors
+flask[async]
+aria2p
+gevent
+pydantic
+requests-async
