@@ -2,6 +2,7 @@ import sys
 
 import typing as t
 from pathlib import Path
+from importlib import import_module
 from flask import Flask, Response, abort, jsonify, request
 from flask_cors import CORS
 from werkzeug.serving import WSGIRequestHandler
@@ -33,12 +34,14 @@ def handle_modules():
         if module_path.is_dir():
             module_name = module_path.name
             module_main = "modules.%s.main" % module_name
-            module = __import__(module_main, fromlist=[module_main])
+            module = import_module(module_main)
+            
+            # module = __import__(module_main, fromlist=[module_main])
             module: ModuleBase = getattr(module, "init")()
             if not isinstance(module, ModuleBase):
                 logger.error(" -load module [%s] failed" % module_name)
                 continue
-
+            
             module.start()
             MODULES[module_name] = module
             for route in module.url_routes:

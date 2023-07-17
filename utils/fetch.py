@@ -4,19 +4,13 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tenacity import retry, stop_after_attempt, wait_fixed
 from urllib.parse import quote, unquote, parse_qs, urlparse
-from pathlib import Path
-from .tools import Config
+from config import proxy
 from .log import retry_log
 
-cf = Config(Path("./config.ini").resolve())
+proxy_enable = proxy.enable()
+proxy_address = proxy.get_proxy_address()
 
 
-def get_config(section: str, option: str, raw=True) -> str:
-    return cf.get(section, option, raw=raw)
-
-
-proxy_address = get_config("proxy", "address")
-proxy_enable = get_config("proxy", "enable")
 proxies = None
 if proxy_enable:
     proxies = {"http": proxy_address, "https": proxy_address}
@@ -70,7 +64,7 @@ def multithread_fetch(
             url_p = urlparse(url)
             url_path = quote(unquote(url_p.path))
             url = url.replace(url_p.path, url_path)
-            
+
             futures.append(executor.submit(_fetch, url, method, pbar, **kwargs))
 
         for future in as_completed(futures):

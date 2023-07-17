@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from functools import wraps
 from inspect import iscoroutinefunction
 from abc import ABC, abstractmethod
-from .config import get_config
+from config import get_download_path
 
 
 __all__ = ["ModuleBase"]
@@ -22,7 +22,7 @@ class ModuleResponse(BaseModel):
     data: t.Any = None
 
 
-output_path = get_config("global", "download_path")
+output_path = get_download_path()
 
 
 class ModuleBase(ABC):
@@ -31,7 +31,7 @@ class ModuleBase(ABC):
     description = ""
     url_routes = []
 
-    output_path = Path(output_path)
+    output_path = output_path
 
     @abstractmethod
     def start(self):
@@ -55,6 +55,9 @@ class ModuleBase(ABC):
                 return ModuleResponse().dict()
             return ModuleResponse(data=res).dict()
 
+        if endpoint is None:
+            endpoint = f"{self.name}_{view_func.__name__}"
+        
         self.url_routes.append(
             {
                 "rule": f"/{self.name}{rule}",

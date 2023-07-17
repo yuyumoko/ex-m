@@ -3,12 +3,13 @@ import re
 import sys
 import hashlib
 import inspect
+import subprocess
 
 from tqdm import tqdm
 from zipfile import ZipFile
 from threading import Thread
 from pathlib import Path
-from configparser import ConfigParser
+from .simple_config import SimpleConfig
 
 
 def get_path(*paths):
@@ -23,34 +24,8 @@ def str2md5(s):
     return md5(str(s).encode())
 
 
-class Config:
-    configPath: Path
-    cf: ConfigParser
-
-    def __init__(self, configPath: Path | str):
-        self.configPath = configPath
-        self.cf = ConfigParser()
-        if not self.cf.read(configPath, encoding="utf-8"):
-            raise FileNotFoundError("配置文件不存在")
-
-    def get(self, section: str, option: str, raw=False) -> str:
-        return self.cf.get(section, option, raw=raw)
-
-    def getint(self, section: str, option: str, raw=False) -> int:
-        return self.cf.getint(section, option, raw=raw)
-
-    def getboolean(self, section: str, option: str, raw=False) -> bool:
-        return self.cf.getboolean(section, option, raw=raw)
-
-    def items(self, section: str, raw=False):
-        return self.cf.items(section, raw=raw)
-
-    def set(self, section: str, option: str, value: str):
-        if not self.cf.has_section(section):
-            self.cf.add_section(section)
-        self.cf.set(section, option, value)
-        with self.configPath.open("w") as f:
-            self.cf.write(f)
+class Config(SimpleConfig):
+    ...
 
 
 def filename_filter(filename: str) -> str:
@@ -110,3 +85,30 @@ def size_format(size):
 
 def file_size_str(path):
     return size_format(os.stat(path).st_size)
+
+
+def runCommand(command, callback: callable = None, ret_log: bool = True):
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    log = []
+    line_num = 0
+    # 实时获取输出
+    while True:
+        output = process.stdout.readline() or process.stderr.readline()
+        return_code = process.poll()
+
+        if not output and return_code is not None:
+            break
+        elif not output and return_code == 0:
+            break
+        elif output and ret_log:
+            line = output.decode("utf-8").strip()
+            log.append(line)
+            if callback:
+                if callback(line, line_num):
+                    process.wait()
+                    break
+            else:
+                print(line)
+            line_num += 1
+
+    return log

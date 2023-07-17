@@ -18,10 +18,10 @@ from utils import (
     file_size_str,
     retry_log,
 )
-from server.config import get_config
+from config import is_compress_file, is_compress_delete_file
 
-compress_file = get_config("global", "compress")
-compress_delete = get_config("global", "compress_delete")
+compress_file = is_compress_file()
+compress_delete = is_compress_delete_file()
 
 
 class HotGirl(ModuleBase):
@@ -75,7 +75,7 @@ class HotGirl(ModuleBase):
         for res in multithread_fetch(_urls):
             html = bs(res.text, "lxml")
             image_urls += get_html_imgs(html)
-            
+
         # check
         new_image_urls = []
         default_suffix = ""
@@ -85,12 +85,12 @@ class HotGirl(ModuleBase):
             if not default_suffix and img_name.suffix:
                 default_suffix = img_name.suffix
             elif default_suffix and not img_name.suffix:
-                 img_name = img_name.with_suffix(default_suffix)
+                img_name = img_name.with_suffix(default_suffix)
             elif default_suffix != img_name.suffix:
                 img_name = img_name.with_suffix(img_name.suffix + default_suffix)
-                
-            new_image_urls.append(img_url_p._replace(path=img_name.as_posix()).geturl())   
-        
+
+            new_image_urls.append(img_url_p._replace(path=img_name.as_posix()).geturl())
+
         return filename, new_image_urls
 
     def get_tag_name(self, pid) -> str:
@@ -123,9 +123,7 @@ class HotGirl(ModuleBase):
         logger.info("开始下载, 请稍等...")
 
         def fetch_images(_urls, _out):
-            headers = {
-                "Referer": "https://hotgirl.asia/"
-            }
+            headers = {"Referer": "https://hotgirl.asia/"}
             for img_data in multithread_fetch(_urls, headers=headers):
                 img_url = img_data.url
                 img_name = Path(urlparse(img_url).path).name
