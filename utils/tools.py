@@ -101,7 +101,7 @@ def runCommand(command, callback: callable = None, ret_log: bool = True):
         elif not output and return_code == 0:
             break
         elif output and ret_log:
-            line = output.decode("utf-8").strip()
+            line = output.decode("utf-8", "ignore").strip()
             log.append(line)
             if callback:
                 if callback(line, line_num):

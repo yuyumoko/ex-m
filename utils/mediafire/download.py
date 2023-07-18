@@ -1,9 +1,9 @@
 import re
 import requests
 import tqdm
-
 from pathlib import Path
 from bs4 import BeautifulSoup
+from threading import Thread
 from utils import compress_dir, extract_file
 
 
@@ -81,11 +81,13 @@ def download(
             pbar.update(len(chunk))
 
         pbar.close()
+        f.close()
 
     except IOError as e:
         raise Exception("Unable to write file") from e
 
     extract_file(output_file, output_path, zip_password)
+    
     if del_original:
         output_file.unlink()
     if rezip:

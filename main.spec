@@ -10,7 +10,8 @@ a = Analysis(
     binaries=[],
     datas=[],
     hiddenimports=[
-        "modules.hotgirl.main"
+        "modules.hotgirl.main",
+        "modules.cosplaytele.main"
     ],
     hookspath=[],
     hooksconfig={},

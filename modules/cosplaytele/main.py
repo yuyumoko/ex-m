@@ -43,7 +43,14 @@ class cosplaytele(ModuleBase):
         info_html = html.select("blockquote strong")
         info_list = [x.text.split(": ") for x in info_html]
         cosplayer = filename_filter(info_list[0][1]).strip()
-        zip_password = info_html[-1].find("input").get("value") or "cosplaytele"
+        
+        zip_password = info_html[-1].find("input")
+        if not zip_password:
+            zip_password = info_html[-1].nextSibling
+        
+        zip_password = zip_password.get("value") or "cosplaytele"
+        
+        
         download_url = [
             x.get("href") for x in html.select("a") if "mediafire" in x.get("href")
         ][0]

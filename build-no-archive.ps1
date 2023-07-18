@@ -16,4 +16,6 @@ Move-Item -Force .\$newname ..\exm_server.exe
 # clean up
 Remove-Item -Force -Recurse .\dist
 
+Write-Output "build complete"
+
 Pause

@@ -1,4 +1,6 @@
 import platform
+import subprocess
+from threading import Thread
 from zipfile import ZipFile
 from pathlib import Path
 
@@ -13,7 +15,6 @@ if platform.system() == "Windows":
 def unrar(file: Path, output_path: Path, password: str = None):
     cmd = [unrar_tool, "x", "-o+", "-p" + password, str(file), str(output_path)]
     runCommand(cmd, ret_log=False)
-
 
 def unzip(file: Path, output_path: Path, password: str = None):
     with ZipFile(file, "r") as zip_file:
