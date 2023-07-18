@@ -11,7 +11,7 @@ if platform.system() == "Windows":
 
 
 def unrar(file: Path, output_path: Path, password: str = None):
-    cmd = [unrar_tool, "x", "-o+", "-p" + password, file, output_path]
+    cmd = [unrar_tool, "x", "-o+", "-p" + password, str(file), str(output_path)]
     runCommand(cmd, ret_log=False)
 
 

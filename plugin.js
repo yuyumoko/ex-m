@@ -7,6 +7,8 @@
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
 // @include      *://hotgirl.asia/*
+// @include      *://cosplaytele.com/*
+// @require      https://code.jquery.com/jquery-3.6.0.min.js
 // @require      https://cdn.staticfile.org/toastify-js/1.12.0/toastify.min.js
 // @run-at       document-end
 // @resource     toastify-css https://cdn.staticfile.org/toastify-js/1.12.0/toastify.min.css
@@ -46,6 +48,29 @@
             $(".mx-auto").append(btn);
         }
         
+    }
+
+    // cosplaytele.com
+    let cosplaytele = /cosplaytele\.com/gm;
+    let cosplaytele_match = cosplaytele.exec(url);
+    if (cosplaytele_match) {
+        console.log("cosplaytele.com match");
+        message("插件加载成功");
+        let btn = $('<button style="border-radius: 25px; padding: 8px; width: 300px; border: 2px solid #ff1493; overflow-wrap: break-word; text-align: center;" class="btn btn-info">使用插件下载</button>');
+        btn.click(function () {
+            btn.attr("disabled", true);
+            let url_path = "cosplaytele/download";
+            $.post(SERVER_URL + url_path, { url: url }).then((result) => {
+                if (result.retcode == 0) {
+                    message("下载成功 任务ID:" + result.data.task_id);
+                    btn.attr("disabled", false);
+                }
+            }, "json");
+        });
+        $(".entry-content blockquote").append(btn);
+        
+
+
     }
 
 

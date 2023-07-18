@@ -36,7 +36,6 @@ def handle_modules():
             module_main = "modules.%s.main" % module_name
             module = import_module(module_main)
             
-            # module = __import__(module_main, fromlist=[module_main])
             module: ModuleBase = getattr(module, "init")()
             if not isinstance(module, ModuleBase):
                 logger.error(" -load module [%s] failed" % module_name)
