@@ -29,7 +29,10 @@ def get_mediafire(url):
 def get_title_mf(url):
     reqs = get_mediafire(url)
     soup = BeautifulSoup(reqs.text, "html.parser")
-    temp_output = str(soup.find("div", {"class": "filename"}).get_text())
+    try:
+        temp_output = str(soup.find("div", {"class": "filename"}).get_text())
+    except AttributeError:
+        temp_output = soup.find("meta", {"property": "og:title"}).get("content")
     return temp_output
 
 
