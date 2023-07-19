@@ -7,7 +7,7 @@ Invoke-Expression ("..\venv\Scripts\pyinstaller.exe ..\main.spec")
 Write-Output  "build version: $version"
 
 # rename main.exe
-$newname = "eimg_server.exe"
+$newname = "exm_server.exe"
 Move-Item -Force .\dist\main.exe .\$newname
 
 # move exe to run
