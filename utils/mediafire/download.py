@@ -4,7 +4,8 @@ import tqdm
 from pathlib import Path
 from bs4 import BeautifulSoup
 from threading import Thread
-from utils import compress_dir, extract_file
+from tenacity import retry, stop_after_attempt, wait_fixed
+from utils import compress_dir, extract_file, retry_log
 
 
 def get_mediafire(url):
@@ -41,7 +42,9 @@ def extractDownloadLink(contents):
         if m:
             return m.groups()[0]
 
-
+@retry(
+        stop=stop_after_attempt(20), wait=wait_fixed(3), before=retry_log, reraise=True
+    )
 def download(
     url,
     output_path: Path,
@@ -90,6 +93,7 @@ def download(
     
     if del_original:
         output_file.unlink()
+        output_file = output_file.with_suffix("")
     if rezip:
         output_file = compress_dir(output_path)
 

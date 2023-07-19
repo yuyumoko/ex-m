@@ -41,6 +41,8 @@ class cosplaytele(ModuleBase):
         res = self.request(request_url)
         html = bs(res.text, "lxml")
         info_html = html.select("blockquote strong")
+        if info_html == []:
+            info_html = html.select("blockquote s-")
         info_list = [x.text.split(": ") for x in info_html]
         cosplayer = filename_filter(info_list[0][1]).strip()
         
@@ -59,14 +61,14 @@ class cosplaytele(ModuleBase):
         logger.info(f"zip_password: [{zip_password}]")
         logger.info(f"download_url: [{download_url}]")
         logger.info("开始下载")
-        mf_download(
+        file = mf_download(
             download_url,
             self.output_path / cosplayer,
             zip_password,
             rezip=False,
             del_original=compress_delete,
         )
-        logger.info("处理完成")
+        logger.info("处理完成: [%s]" % file.name)
 
     def start_download(self):
         try:
