@@ -45,9 +45,7 @@ def extractDownloadLink(contents):
         if m:
             return m.groups()[0]
 
-@retry(
-        stop=stop_after_attempt(20), wait=wait_fixed(3), before=retry_log, reraise=True
-    )
+@retry(stop=stop_after_attempt(20), wait=wait_fixed(3), before=retry_log, reraise=True)
 def download(
     url,
     output_path: Path,
@@ -92,7 +90,7 @@ def download(
     except IOError as e:
         raise Exception("Unable to write file") from e
 
-    extract_file(output_file, output_path, zip_password)
+    output_file, _ = extract_file(output_file, output_path, zip_password)
     
     if del_original:
         output_file.unlink()
