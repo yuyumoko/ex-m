@@ -1,6 +1,6 @@
 import functools
 import inspect
-
+import base64
 import typing as t
 from pathlib import Path
 from pydantic import BaseModel, validator
@@ -21,6 +21,14 @@ class ArgRequireOption(BaseModel):
     @validator("save_path", pre=True)
     def save_path_to_path(cls, v):
         return Path(v)
+
+
+def encode_val(val: str):
+    return base64.b64encode(val.encode("utf-8")).decode("utf-8")
+
+
+def decode_val(val: str):
+    return base64.b64decode(val.encode("utf-8")).decode("utf-8")
 
 
 class ArgRequire:
@@ -94,12 +102,25 @@ class ArgRequire:
         fn_name = _utils.get_callback_name(func)
         section_key = self.option.save_prefix + fn_name
         if self.config.has_section(section_key):
-            return self.config.items(section_key) or []
+            items = self.config.items(section_key)
+            if not items:
+                return []
+            for i, (k, v) in enumerate(items):
+                if k.endswith("_encode"):
+                    items[i] = (k[:-7], decode_val(v))
+            return items
 
     def save(self, func: t.Callable, kwargs: dict[str, t.Any]):
         fn_name = _utils.get_callback_name(func)
         for arg, val in kwargs.items():
+            if "%" in val:
+                val = encode_val(val)
+                arg += "_encode"
             self.config.set(self.option.save_prefix + fn_name, arg, val)
+
+    def remove(self, func: t.Callable):
+        fn_name = _utils.get_callback_name(func)
+        self.config.remove_section(self.option.save_prefix + fn_name)
 
     def __apply_arg_pop(self, _args, current: bool):
         res = None
@@ -156,7 +177,7 @@ class ArgRequire:
                         has_default_val = False
                         if local_items:
                             default_val = list(
-                                filter(lambda x: x[0] == arg, local_items)
+                                filter(lambda x: x[0] == arg.lower(), local_items)
                             )
                             if default_val:
                                 if isinstance(msg, tuple):
@@ -189,9 +210,8 @@ class ArgRequire:
                             continue
                         update_kw(arg, msg)
 
-                    
                     func_ret = func(*args, **kwargs)
-                    
+
                     if self.option.save:
                         self.save(func, input_kwargs_raw)
 

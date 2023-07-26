@@ -1,9 +1,7 @@
-import re
 import requests
 import tqdm
 from pathlib import Path
 from bs4 import BeautifulSoup
-from threading import Thread
 from tenacity import retry, stop_after_attempt, wait_fixed
 from utils import compress_dir, extract_file, retry_log
 
@@ -38,12 +36,6 @@ def get_title_mf(url):
 
 CHUNK_SIZE = 512 * 1024  # 512KB
 
-
-def extractDownloadLink(contents):
-    for line in contents.splitlines():
-        m = re.search(r'href="((http|https)://download[^"]+)', line)
-        if m:
-            return m.groups()[0]
 
 @retry(stop=stop_after_attempt(20), wait=wait_fixed(3), before=retry_log, reraise=True)
 def download(
@@ -91,7 +83,7 @@ def download(
         raise Exception("Unable to write file") from e
 
     output_file, _ = extract_file(output_file, output_path, zip_password)
-    
+
     if del_original:
         output_file.unlink()
         output_file = output_file.with_suffix("")

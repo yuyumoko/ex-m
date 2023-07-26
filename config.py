@@ -41,3 +41,21 @@ def initConfig():
     is_compress_file()
     is_compress_delete_file()
     proxy.enable()
+
+
+@ag.apply(True, "请先登录 https://www.terabox.com/ 控制台输入 window.jsToken 获取该值")
+def terabox_jsToken(jsToken: str):
+    return jsToken
+
+
+def del_terabox_jsToken():
+    ag.remove(terabox_jsToken)
+
+
+@ag.apply(True, "打开download_url的链接, 按F12打开开发者工具, 在Network中找到 api/getsyscfg 请求头中的Cookie, 复制到这里")
+def terabox_cookie(cookie: str):
+    return cookie
+
+
+def del_terabox_cookie():
+    ag.remove(terabox_cookie)
