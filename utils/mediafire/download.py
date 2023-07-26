@@ -1,3 +1,4 @@
+import re
 import requests
 import tqdm
 from pathlib import Path
@@ -36,6 +37,11 @@ def get_title_mf(url):
 
 CHUNK_SIZE = 512 * 1024  # 512KB
 
+def extractDownloadLink(contents):
+    for line in contents.splitlines():
+        m = re.search(r'href="((http|https)://download[^"]+)', line)
+        if m:
+            return m.groups()[0]
 
 @retry(stop=stop_after_attempt(20), wait=wait_fixed(3), before=retry_log, reraise=True)
 def download(
