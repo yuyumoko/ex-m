@@ -37,7 +37,7 @@ class cosplaytele(ModuleBase):
         return fetch(url)
 
     def _find_html_download_url(self, html: bs):
-        dl_domain = ["mediafire", "terabox"]
+        dl_domain = ["mediafire", "terabox", "traffic1s"]
         all_url = [x.get("href") for x in html.select("a")]
         for url in all_url:
             if any([x in url for x in dl_domain]):
@@ -55,6 +55,9 @@ class cosplaytele(ModuleBase):
             fn = mf_download
         elif "terabox" in url:
             fn = tb_download
+        elif "traffic1s" in url:
+            logger.warning("暂不支持该下载 [%s]" % url)
+            return
         else:
             raise Exception("不支持的下载链接")
 
@@ -87,7 +90,7 @@ class cosplaytele(ModuleBase):
 
         download_url = self._find_html_download_url(html)
         if download_url is None:
-            logger.error("不支持的下载链接")
+            logger.warning("找不到下载链接")
             return
 
         logger.info(f"cosplayer: [{cosplayer}]")

@@ -4,6 +4,7 @@
 // @version      0.0.1
 // @description  自定义
 // @author       erinilis
+// @license      MIT
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
 // @include      *://hotgirl.asia/*
