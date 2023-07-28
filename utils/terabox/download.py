@@ -4,7 +4,7 @@ import tqdm
 from pathlib import Path
 from urllib.parse import urlencode
 from tenacity import retry, stop_after_attempt, wait_fixed
-from utils import compress_dir, extract_file, retry_log
+from utils import logger, compress_dir, extract_file, retry_log, filename_filter
 
 from config import (
     proxy,
@@ -23,7 +23,7 @@ if proxy_enable:
     proxies = {"http": proxy_address, "https": proxy_address}
 
 
-def get_share_info(share_url: str, page: int = 1, num: int = 20):
+def get_share_info(share_url: str, page: int = 1, num: int = 20, dir: str = ""):
     query = {
         "app_id": "250528",
         "web": 1,
@@ -35,13 +35,36 @@ def get_share_info(share_url: str, page: int = 1, num: int = 20):
         "by": "name",
         "order": "asc",
         "shorturl": Path(share_url).name[1:],
-        "root": 1,
     }
+    
+    if dir:
+        query["dir"] = dir
+    else:
+        query["root"] = 1
+    
     headers = {
         "Cookie": terabox_cookie(),
     }
     url = "https://www.terabox.com/share/list?"
-    return requests.request("GET", url + urlencode(query), headers=headers).json()
+    res_data = requests.request("GET", url + urlencode(query), headers=headers).json()
+    if not res_data.get("list"):
+        del_terabox_jsToken()
+        del_terabox_cookie()
+        raise Exception("jsToken或Cookie已过期, 请重新输入")
+    
+    return res_data['list']
+
+
+def get_dlinks(share_url: str, dir: str = ""):
+    urls = []
+    for item in get_share_info(share_url, dir=dir):
+        dlink = item.get("dlink")
+        if dlink:
+            urls.append(dlink)
+        elif item.get("isdir") == '1':
+            urls.extend(get_dlinks(share_url, item["path"]))
+    return urls
+    
 
 
 CHUNK_SIZE = 512 * 1024  # 512KB
@@ -55,13 +78,8 @@ def download(
     rezip: bool = False,
     del_original: bool = False,
 ):
-    share_info = get_share_info(url)
-    if not share_info.get("list"):
-        del_terabox_jsToken()
-        del_terabox_cookie()
-        raise Exception("jsToken或Cookie已过期, 请重新输入")
+    dl_links = get_dlinks(url)
 
-    dl_links = [x["dlink"] for x in share_info["list"] if x.get("dlink")]
     if not dl_links:
         del_terabox_jsToken()
         del_terabox_cookie()
@@ -77,7 +95,7 @@ def download(
         filename = (
             compiler.search(res.headers["Content-Disposition"]).group(1).strip('"')
         )
-        filename = filename.encode("ISO-8859-1").decode()
+        filename = filename_filter(filename.encode("ISO-8859-1").decode())
 
         output_file = output_path / filename
 
@@ -101,13 +119,14 @@ def download(
             raise Exception("Unable to write file") from e
         finally:
             f.close()
+            
+        logger.info("正在解压: [%s]" % output_file.name)
+        output_file, _ = extract_file(output_file, output_path, zip_password)
 
-    output_file, _ = extract_file(output_file, output_path, zip_password)
-
-    if del_original:
-        output_file.unlink()
-        output_file = output_file.with_suffix("")
-    if rezip:
-        output_file = compress_dir(output_path)
+        if del_original:
+            output_file.unlink()
+            output_file = output_file.with_suffix("")
+        if rezip:
+            output_file = compress_dir(output_path)
 
     return output_file

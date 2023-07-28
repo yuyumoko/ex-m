@@ -4,7 +4,7 @@ import tqdm
 from pathlib import Path
 from bs4 import BeautifulSoup
 from tenacity import retry, stop_after_attempt, wait_fixed
-from utils import compress_dir, extract_file, retry_log
+from utils import logger, compress_dir, extract_file, retry_log, filename_filter
 
 
 def get_mediafire(url):
@@ -53,7 +53,7 @@ def download(
 ):
     output_path.mkdir(parents=True, exist_ok=True)
 
-    zip_name = get_title_mf(url)
+    zip_name = filename_filter(get_title_mf(url))
     output_file = output_path / zip_name
 
     sess = requests.session()
@@ -88,6 +88,7 @@ def download(
     except IOError as e:
         raise Exception("Unable to write file") from e
 
+    logger.info("正在解压: [%s]" % output_file.name)
     output_file, _ = extract_file(output_file, output_path, zip_password)
 
     if del_original:

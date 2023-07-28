@@ -3,7 +3,7 @@ from server.server import run_server
 from utils import logger
 from config import initConfig
 
-__version__ = "0.0.10"
+__version__ = "0.0.11"
 
 if __name__ == "__main__":
     logger.info("EX-M v%s" % __version__)
