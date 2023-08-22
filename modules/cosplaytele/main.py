@@ -2,6 +2,7 @@ import werkzeug.exceptions
 from bs4 import BeautifulSoup as bs
 from flask import request
 from pathlib import Path
+from PyBypass import bypass as url_bypass
 from tenacity import retry, stop_after_attempt, wait_fixed
 from server.module import ModuleBase
 from utils import (
@@ -12,8 +13,10 @@ from utils import (
     retry_log,
 )
 from config import is_compress_file, is_compress_delete_file
+from utils.simple_download import download as simple_download
 from utils.mediafire.download import download as mf_download
 from utils.terabox.download import download as tb_download
+
 
 compress_file = is_compress_file()
 compress_delete = is_compress_delete_file()
@@ -37,7 +40,7 @@ class cosplaytele(ModuleBase):
         return fetch(url)
 
     def _find_html_download_url(self, html: bs):
-        dl_domain = ["mediafire", "terabox", "traffic1s"]
+        dl_domain = ["mediafire", "terabox", "traffic1s", "yandex"]
         all_url = [x.get("href") for x in html.select("a")]
         for url in all_url:
             if any([x in url for x in dl_domain]):
@@ -55,7 +58,12 @@ class cosplaytele(ModuleBase):
             fn = mf_download
         elif "terabox" in url:
             fn = tb_download
+        elif "yandex" in url:
+            url = [url_bypass(url)]
+            fn = simple_download
         elif "traffic1s" in url:
+            url = url_bypass(url)
+            print(url)
             logger.warning("暂不支持该下载 [%s]" % url)
             return
         else:

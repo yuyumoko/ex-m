@@ -13,3 +13,4 @@ aria2p
 gevent
 pydantic
 requests-async
+PyBypass

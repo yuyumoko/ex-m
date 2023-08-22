@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from tenacity import retry, stop_after_attempt, wait_fixed
 from utils import logger, compress_dir, extract_file, retry_log, filename_filter
 
+from ..simple_download import download as simple_download
 
 def get_mediafire(url):
     headers = {
