@@ -18,7 +18,7 @@ if proxy_enable:
 CHUNK_SIZE = 512 * 1024  # 512KB
 
 
-@retry(stop=stop_after_attempt(20), wait=wait_fixed(3), before=retry_log, reraise=True)
+# @retry(stop=stop_after_attempt(20), wait=wait_fixed(3), before=retry_log, reraise=True)
 def download(
     download_urls: list[str],
     output_path: Path,
@@ -34,7 +34,11 @@ def download(
         
         filename = re.findall("=(UTF-8)?(.+)", res.headers["Content-Disposition"])[0][-1]
         filename = unquote(filename.strip('"').strip("'"))
-        filename = filename_filter(filename.encode("ISO-8859-1").decode())
+        try:
+            filename = filename.encode("ISO-8859-1").decode()
+        except UnicodeEncodeError:
+            pass
+        filename = filename_filter(filename)
 
         output_file = output_path / filename
 
