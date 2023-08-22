@@ -32,7 +32,10 @@ def get_title_mf(url):
     try:
         temp_output = str(soup.find("div", {"class": "filename"}).get_text())
     except AttributeError:
-        temp_output = soup.find("meta", {"property": "og:title"}).get("content")
+        property = soup.find("meta", {"property": "og:title"})
+        if property is None:
+            return None
+        temp_output = property.get("content")
     return temp_output
 
 
@@ -54,7 +57,12 @@ def download(
 ):
     output_path.mkdir(parents=True, exist_ok=True)
 
-    zip_name = filename_filter(get_title_mf(url))
+    title_mf = get_title_mf(url)
+    if title_mf is None:
+        logger.error("无法获取文件名, 资源可能已被删除")
+        return None
+    
+    zip_name = filename_filter(title_mf)
     output_file = output_path / zip_name
 
     sess = requests.session()

@@ -76,6 +76,9 @@ class cosplaytele(ModuleBase):
             rezip=False,
             del_original=compress_delete,
         )
+        if file is None:
+            logger.warning("下载失败")
+            return
 
         logger.info("处理完成: [%s]" % file.name)
 
